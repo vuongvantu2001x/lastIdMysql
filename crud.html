@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD with jQuery and AJAX</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body>
+
+<h2>User List</h2>
+<table id="userTable" border="1">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<h2>Add User</h2>
+<form id="addForm">
+    <label>Name:</label>
+    <input type="text" id="name" required>
+    <label>Email:</label>
+    <input type="email" id="email" required>
+    <button type="button" onclick="addUser()">Add User</button>
+</form>
+
+<script>
+// Hiển thị danh sách người dùng khi trang được tải
+$(document).ready(function() {
+    readUsers();
+});
+
+// Hàm đọc dữ liệu từ cơ sở dữ liệu và hiển thị lên bảng
+function readUsers() {
+    $.ajax({
+        type: 'POST',
+        url: 'crud.php',
+        data: { action: 'read' },
+        success: function(response) {
+            var users = JSON.parse(response);
+            var table = $('#userTable tbody');
+            table.empty();
+            users.forEach(function(user) {
+                var row = `<tr>
+                               <td>${user.id}</td>
+                               <td>${user.name}</td>
+                               <td>${user.email}</td>
+                               <td>
+                                   <button type="button" onclick="editUser(${user.id})">Edit</button>
+                                   <button type="button" onclick="deleteUser(${user.id})">Delete</button>
+                               </td>
+                           </tr>`;
+                table.append(row);
+            });
+        }
+    });
+}
+
+// Hàm thêm người dùng mới
+function addUser() {
+    var name = $('#name').val();
+    var email = $('#email').val();
+    $.ajax({
+        type: 'POST',
+        url: 'crud.php',
+        data: { action: 'create', name: name, email: email },
+        success: function(response) {
+            alert(response);
+            readUsers(); // Reload user list after adding a new user
+        }
+    });
+}
+
+// Hàm sửa thông tin người dùng
+function editUser(id) {
+    var newName = prompt('Enter new name:');
+    var newEmail = prompt('Enter new email:');
+    $.ajax({
+        type: 'POST',
+        url: 'crud.php',
+        data: { action: 'update', id: id, name: newName, email: newEmail },
+        success: function(response) {
+            alert(response);
+            readUsers(); // Reload user list after updating a user
+        }
+    });
+}
+
+// Hàm xóa người dùng
+function deleteUser(id) {
+    if (confirm('Are you sure you want to delete this user?')) {
+        $.ajax({
+            type: 'POST',
+            url: 'crud.php',
+            data: { action: 'delete', id: id },
+            success: function(response) {
+                alert(response);
+                readUsers(); // Reload user list after deleting a user
+            }
+        });
+    }
+}
+</script>
+
+</body>
+</html>
